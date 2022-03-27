@@ -155,9 +155,7 @@ cmp.setup {
   },
 }
 
-_G.vimrc = _G.vimrc or {}
-_G.vimrc.cmp = _G.vimrc.cmp or {}
-_G.vimrc.cmp.lsp = function()
+vim.keymap.set('i', '<C-x><C-o>', function()
   cmp.complete({
     config = {
       sources = {
@@ -165,8 +163,9 @@ _G.vimrc.cmp.lsp = function()
       }
     }
   })
-end
-_G.vimrc.cmp.snippet = function()
+end, { noremap = true })
+
+vim.keymap.set('i', '<C-x><C-s>', function()
   cmp.complete({
     config = {
       sources = {
@@ -174,12 +173,7 @@ _G.vimrc.cmp.snippet = function()
       }
     }
   })
-end
-
-vim.cmd([[
-  inoremap <C-x><C-o> <Cmd>lua vimrc.cmp.lsp()<CR>
-  inoremap <C-x><C-s> <Cmd>lua vimrc.cmp.snippet()<CR>
-]])
+end, { noremap = true })
 ```
 
 ### Full managed completion behavior.
@@ -193,22 +187,19 @@ cmp.setup {
   }
 }
 
-_G.vimrc = _G.vimrc or {}
-_G.vimrc.cmp = _G.vimrc.cmp or {}
-_G.vimrc.cmp.on_text_changed = function()
-  local cursor = vim.api.nvim_win_get_cursor(0)
-  local line = vim.api.nvim_get_current_line()
-  local before = string.sub(line, 1, cursor[2] + 1)
-  if before:match('%s*$') then
-    cmp.complete() -- Trigger completion only if the cursor is placed at the end of line.
-  end
-end
-vim.cmd([[
-  augroup vimrc
-    autocmd
-    autocmd TextChanged,TextChangedI,TextChangedP * call luaeval('vimrc.cmp.on_text_changed()')
-  augroup END
-]])
+local group = api.nvim_create_augroup('vimrc', {})
+
+vim.api.nvim_create_autocmd('TextChanged,TextChangedI,TextChangedP', {
+  callback = function()
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    local line = vim.api.nvim_get_current_line()
+    local before = string.sub(line, 1, cursor[2] + 1)
+    if before:match('%s*$') then
+      cmp.complete() -- Trigger completion only if the cursor is placed at the end of line.
+    end
+  end,
+  group = group,
+})
 ```
 
 
